@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Recommendation System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+  <div class="container py-4">
+    <h2 class="text-center mb-4">🎵 Music Recommendation System</h2>
+
+    <!-- Search Section -->
+    <div class="card p-3 mb-4">
+      <h5>Search by Track</h5>
+      <div class="input-group">
+        <input type="text" id="searchInput" class="form-control" placeholder="Enter track name...">
+        <button class="btn btn-primary" onclick="searchTrack()">Search</button>
+      </div>
+    </div>
+
+    <!-- Mood Section -->
+    <div class="card p-3 mb-4">
+      <h5>Recommend by Mood</h5>
+
+      <label>Valence (happiness): <span id="valenceValue">0.5</span></label>
+      <input type="range" id="valence" min="0" max="1" step="0.01" value="0.5" class="form-range"
+             oninput="document.getElementById('valenceValue').innerText=this.value">
+
+      <label>Danceability: <span id="danceabilityValue">0.5</span></label>
+      <input type="range" id="danceability" min="0" max="1" step="0.01" value="0.5" class="form-range"
+             oninput="document.getElementById('danceabilityValue').innerText=this.value">
+
+      <label>Energy: <span id="energyValue">0.5</span></label>
+      <input type="range" id="energy" min="0" max="1" step="0.01" value="0.5" class="form-range"
+             oninput="document.getElementById('energyValue').innerText=this.value">
+
+      <label>Tempo (BPM): <span id="tempoValue">120</span></label>
+      <input type="range" id="tempo" min="60" max="200" step="1" value="120" class="form-range"
+             oninput="document.getElementById('tempoValue').innerText=this.value">
+
+      <button class="btn btn-success mt-3" onclick="recommendByMood()">Recommend by Mood</button>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card p-3">
+      <h5>Recommendations</h5>
+      <ul id="results" class="list-group"></ul>
+    </div>
+  </div>
+
+  <script>
+    async function searchTrack() {
+      const q = document.getElementById("searchInput").value;
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      displayResults(data);
+    }
+
+    async function recommendByMood() {
+      const valence = document.getElementById("valence").value;
+      const danceability = document.getElementById("danceability").value;
+      const energy = document.getElementById("energy").value;
+      const tempo = document.getElementById("tempo").value;
+
+      const params = new URLSearchParams({
+        valence, danceability, energy, tempo
+      });
+
+      const res = await fetch(`/api/recommend/by-mood?${params.toString()}`);
+      const data = await res.json();
+      displayResults(data);
+    }
+
+    function displayResults(data) {
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+      if (data.length === 0) {
+        results.innerHTML = "<li class='list-group-item'>No results found</li>";
+        return;
+      }
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.innerHTML = `<strong>${item.title}</strong> by ${item.artist} (Popularity: ${item.popularity})`;
+        results.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
